@@ -13,6 +13,10 @@
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -65,10 +69,13 @@
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Helpers\DataTransferModelProperties.cs" />
+    <Compile Include="Helpers\InfrastructureConfigurationProperties.cs" />
     <Compile Include="Model\ApplicationController.cs" />
     <Compile Include="Model\CommandLineProvider.cs" />
     <Compile Include="Model\DataAdapterConfigurationProvidersCollection.cs" />
     <Compile Include="Model\ErrorHandler.cs" />
+    <Compile Include="Model\Statistics\ObservableErrorsTransferStatistics.cs" />
+    <Compile Include="Model\Statistics\ObservableErrorsTransferStatisticsFactory.cs" />
     <Compile Include="Shell\IMainWindowViewModel.cs" />
     <Compile Include="Shell\Navigation\ActionCommand.cs" />
     <Compile Include="Shell\Navigation\CancelImportCommand.cs" />
@@ -101,6 +108,11 @@
     </Compile>
     <Compile Include="Steps\Import\ImportStep.cs" />
     <Compile Include="Steps\Import\ImportViewModel.cs" />
+    <Compile Include="Steps\InfrastructureSetup\InfrastructureSetupPage.xaml.cs">
+      <DependentUpon>InfrastructureSetupPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Steps\InfrastructureSetup\InfrastructureSetupStep.cs" />
+    <Compile Include="Steps\InfrastructureSetup\InfrastructureConfiguration.cs" />
     <Compile Include="Steps\NavigationStepBase.cs" />
     <Compile Include="Steps\SinkSetup\SinkSetupPage.xaml.cs">
       <DependentUpon>SinkSetupPage.xaml</DependentUpon>
@@ -116,6 +128,9 @@
       <DependentUpon>CommandLinePreviewWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Steps\Summary\GenerateCommandLineCommand.cs" />
+    <Compile Include="Steps\Summary\InfrastructureSetupSummaryControl.xaml.cs">
+      <DependentUpon>InfrastructureSetupSummaryControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Steps\Summary\SummaryPageViewModel.cs" />
     <Compile Include="Steps\Summary\SummaryPage.xaml.cs">
       <DependentUpon>SummaryPage.xaml</DependentUpon>
@@ -162,6 +177,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Steps\InfrastructureSetup\InfrastructureSetupPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Steps\SinkSetup\SinkSetupPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -171,6 +190,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Steps\Summary\CommandLinePreviewWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Steps\Summary\InfrastructureSetupSummaryControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -216,6 +239,14 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\AzureTable\Microsoft.DataTransfer.AzureTable.Wpf\Microsoft.DataTransfer.AzureTable.Wpf.csproj">
+      <Project>{8a191b07-775f-43c8-acb6-f742073612ea}</Project>
+      <Name>Microsoft.DataTransfer.AzureTable.Wpf</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\AzureTable\Microsoft.DataTransfer.AzureTable\Microsoft.DataTransfer.AzureTable.csproj">
+      <Project>{366ba489-e851-4899-9ba3-2f9c7599d24b}</Project>
+      <Name>Microsoft.DataTransfer.AzureTable</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Core\Microsoft.DataTransfer.Core\Microsoft.DataTransfer.Core.csproj">
       <Project>{01631f6d-813c-47d7-9ca7-3a6e493356f5}</Project>
       <Name>Microsoft.DataTransfer.Core</Name>
@@ -259,6 +290,14 @@
     <ProjectReference Include="..\..\MongoDb\Microsoft.DataTransfer.MongoDb\Microsoft.DataTransfer.MongoDb.csproj">
       <Project>{782ce839-40a8-4c47-9998-c3b0b7c3d2a1}</Project>
       <Name>Microsoft.DataTransfer.MongoDb</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\RavenDb\Microsoft.DataTransfer.RavenDb.Wpf\Microsoft.DataTransfer.RavenDb.Wpf.csproj">
+      <Project>{29968bb5-bc00-4976-8b78-1b0244654b5d}</Project>
+      <Name>Microsoft.DataTransfer.RavenDb.Wpf</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\RavenDb\Microsoft.DataTransfer.RavenDb\Microsoft.DataTransfer.RavenDb.csproj">
+      <Project>{d505404f-2fc0-453c-86bb-ba3b1ae13919}</Project>
+      <Name>Microsoft.DataTransfer.RavenDb</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Shared\Microsoft.DataTransfer.Autofac\Microsoft.DataTransfer.Autofac.csproj">
       <Project>{e31f1956-78be-4960-82e9-e1d8a73fa6d5}</Project>

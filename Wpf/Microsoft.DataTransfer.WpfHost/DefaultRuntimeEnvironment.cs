@@ -1,12 +1,15 @@
 ﻿using Autofac;
 using Autofac.Configuration;
 using Microsoft.DataTransfer.Core;
+using Microsoft.DataTransfer.ServiceModel.Statistics;
 using Microsoft.DataTransfer.WpfHost.Extensibility;
 using Microsoft.DataTransfer.WpfHost.Model;
+using Microsoft.DataTransfer.WpfHost.Model.Statistics;
 using Microsoft.DataTransfer.WpfHost.ServiceModel;
 using Microsoft.DataTransfer.WpfHost.ServiceModel.Steps;
 using Microsoft.DataTransfer.WpfHost.Shell;
 using Microsoft.DataTransfer.WpfHost.Steps.Import;
+using Microsoft.DataTransfer.WpfHost.Steps.InfrastructureSetup;
 using Microsoft.DataTransfer.WpfHost.Steps.SinkSetup;
 using Microsoft.DataTransfer.WpfHost.Steps.SourceSetup;
 using Microsoft.DataTransfer.WpfHost.Steps.Summary;
@@ -38,6 +41,10 @@ namespace Microsoft.DataTransfer.WpfHost
 
         private static void RegisterModel(ContainerBuilder builder)
         {
+            builder
+                .RegisterDecorator<ITransferStatisticsFactory>((c, f) => new ObservableErrorsTransferStatisticsFactory(f))
+                .As<ITransferStatisticsFactory>();
+
             builder
                 .RegisterType<DataAdapterConfigurationProvidersCollection>()
                 .As<IDataAdapterConfigurationProvidersCollection>()
@@ -74,6 +81,10 @@ namespace Microsoft.DataTransfer.WpfHost
 
             builder
                 .RegisterType<SummaryStep>()
+                .As<INavigationStep>();
+
+            builder
+                .RegisterType<InfrastructureSetupStep>()
                 .As<INavigationStep>();
 
             builder

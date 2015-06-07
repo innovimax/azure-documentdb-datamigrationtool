@@ -1,11 +1,12 @@
-﻿using CsvHelper;
-using Microsoft.DataTransfer.Basics;
+﻿using Microsoft.DataTransfer.Basics;
+using Microsoft.DataTransfer.CsvFile.Reader;
 using Microsoft.DataTransfer.Extensibility;
 using Microsoft.DataTransfer.Extensibility.Basics.Source;
+using Microsoft.DataTransfer.Extensibility.Basics.Source.StreamProviders;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,62 +14,81 @@ namespace Microsoft.DataTransfer.CsvFile.Source
 {
     sealed class CsvFileSourceAdapter : IDataSourceAdapter
     {
+        private readonly ISourceStreamProvider sourceStreamProvider;
         private readonly ICsvFileSourceAdapterInstanceConfiguration configuration;
 
-        private StreamReader file;
-        private CsvReader csvReader;
+        private CsvReader reader;
+        private IReadOnlyList<string> header;
 
-        private int rowNumber;
-
-        public CsvFileSourceAdapter(ICsvFileSourceAdapterInstanceConfiguration configuration)
+        public CsvFileSourceAdapter(ISourceStreamProvider sourceStreamProvider, ICsvFileSourceAdapterInstanceConfiguration configuration)
         {
+            Guard.NotNull("sourceStreamProvider", sourceStreamProvider);
             Guard.NotNull("configuration", configuration);
+
+            this.sourceStreamProvider = sourceStreamProvider;
             this.configuration = configuration;
         }
 
-        public Task<IDataItem> ReadNextAsync(ReadOutputByRef readOutput, CancellationToken cancellation)
+        public async Task<IDataItem> ReadNextAsync(ReadOutputByRef readOutput, CancellationToken cancellation)
         {
-            return Task.Factory.StartNew<IDataItem>(ReadNext, readOutput);
-        }
-
-        private IDataItem ReadNext(object taskState)
-        {
-            var readOutput = (ReadOutputByRef)taskState;
-
             try
             {
-                if (file == null)
+                if (reader == null)
                 {
-                    file = File.OpenText(configuration.FileName);
-                    csvReader = new CsvReader(file);
+                    reader = new CsvReader(
+                        await sourceStreamProvider.CreateReader(),
+                        new CsvReaderConfiguration
+                        {
+                            TrimQuoted = configuration.TrimQuoted,
+                            IgnoreUnquotedNulls = configuration.NoUnquotedNulls
+                        });
+                    header = ReadHeaderRow();
                 }
 
-                if (!csvReader.Read())
+                if (header == null)
                     return null;
 
-                // Unfortunatelly there is no support for mapping to a Dictionary yet.
-                // Use dynamic workaround https://github.com/JoshClose/CsvHelper/issues/187
-                var record = csvReader.GetRecord<dynamic>() as IDictionary<string, object>;
-
-                return NestedDataItem.Create(record, configuration.NestingSeparator);
+                return await Task.Factory.StartNew<IDataItem>(ReadNext);
             }
             finally
             {
-                if (csvReader != null)
-                    // If it fails on the first read - it will throw an exception from Row property
-                    try { rowNumber = csvReader.Row; } catch { }
-
                 readOutput.DataItemId = String.Format(CultureInfo.InvariantCulture,
-                    Resources.DataItemIdFormat, configuration.FileName, rowNumber);
+                    Resources.DataItemIdFormat, sourceStreamProvider.Id, reader == null ? 0 : reader.Row);
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2213:DisposableFieldsShouldBeDisposed", MessageId = "csvReader",
+        private IDataItem ReadNext()
+        {
+            var values = reader.Read();
+
+            if (values == null)
+                return null;
+
+            if (values.Count != header.Count)
+                throw Errors.InvalidNumberOfColumns(values.Count, header.Count);
+
+            var dataItem = NestedDataItem.Create(configuration.NestingSeparator);
+
+            for (var index = 0; index < header.Count; ++index)
+                dataItem.AddProperty(header[index], values[index]);
+
+            return dataItem;
+        }
+
+        private IReadOnlyList<string> ReadHeaderRow()
+        {
+            var headerRow = reader.Read();
+            if (headerRow == null || !headerRow.Any())
+                return null;
+
+            return headerRow.Select(i => i == null ? String.Empty : i.ToString()).ToList();
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2213:DisposableFieldsShouldBeDisposed", MessageId = "reader",
             Justification = "Disposed through TrashCan helper")]
         public void Dispose()
         {
-            TrashCan.Throw(ref csvReader, r => r.Dispose());
-            TrashCan.Throw(ref file, f => f.Close());
+            TrashCan.Throw(ref reader);
         }
     }
 }

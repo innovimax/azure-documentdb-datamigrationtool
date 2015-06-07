@@ -1,0 +1,34 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+  
+  <ResourceDictionary.MergedDictionaries>
+    <ResourceDictionary Source="/Microsoft.DataTransfer.WpfHost.Basics;component/CommonStyles.xaml" />
+  </ResourceDictionary.MergedDictionaries>
+
+  <!-- String resources -->
+
+  <system:String x:Key="ConnectionStringKey">Connection String</system:String>
+  <system:String x:Key="ConnectionStringSummaryKey">Connection String:</system:String>
+  <system:String x:Key="TestConnectionKey">Verify</system:String>
+
+  <system:String x:Key="TableNameKey">Table Name</system:String>
+  <system:String x:Key="TableNameSummaryKey">Table Name:</system:String>
+
+  <system:String x:Key="InternalFieldsKey">Include Internal Fields</system:String>
+  <system:String x:Key="InternalFieldsDescriptionKey">Choose which Azure Table internal fields to include: None, only Row Key or All (Row Key, Partition Key and Timestamp)</system:String>
+  <system:String x:Key="InternalFieldsSummaryKey">Include Internal Fields:</system:String>
+
+  <system:String x:Key="FilterKey">Filter</system:String>
+  <system:String x:Key="FilterSummaryKey">Filter:</system:String>
+
+  <system:String x:Key="ProjectionKey">Select Columns</system:String>
+  <system:String x:Key="ProjectionSummaryKey">Select Columns:</system:String>
+
+  <!-- Styles -->
+  
+  <Style x:Key="ScrollWrapper" TargetType="ScrollViewer">
+    <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+  </Style>
+
+</ResourceDictionary>

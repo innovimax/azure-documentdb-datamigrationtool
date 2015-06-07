@@ -1,6 +1,7 @@
 ﻿using Microsoft.DataTransfer.Basics;
 using Microsoft.DataTransfer.Extensibility;
 using Microsoft.DataTransfer.Extensibility.Basics.Source;
+using Microsoft.DataTransfer.Extensibility.Basics.Source.StreamProviders;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -34,19 +35,22 @@ namespace Microsoft.DataTransfer.CsvFile.Source
         {
             Guard.NotNull("configuration", configuration);
 
+            var instanceConfiguration = GetInstanceConfiguration(configuration);
+
             return new AggregateDataSourceAdapter(
                 configuration.Files
-                    .SelectMany(p => DirectoryHelper
-                        .EnumerateFiles(p)
-                        .Select(f => new CsvFileSourceAdapter(GetInstanceConfiguration(f, configuration)))));
+                    .SelectMany(f => SourceStreamProvidersFactory
+                        .Create(f)
+                        .Select(p => new CsvFileSourceAdapter(p, instanceConfiguration))));
         }
 
-        private static ICsvFileSourceAdapterInstanceConfiguration GetInstanceConfiguration(string fileName, ICsvFileSourceAdapterConfiguration configuration)
+        private static ICsvFileSourceAdapterInstanceConfiguration GetInstanceConfiguration(ICsvFileSourceAdapterConfiguration configuration)
         {
             return new CsvFileSourceAdapterInstanceConfiguration
             {
-                FileName = fileName,
-                NestingSeparator = configuration.NestingSeparator
+                NestingSeparator = configuration.NestingSeparator,
+                TrimQuoted = configuration.TrimQuoted,
+                NoUnquotedNulls = configuration.NoUnquotedNulls
             };
         }
     }
